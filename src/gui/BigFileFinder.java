@@ -18,6 +18,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
 import javax.swing.ListModel;
 import javax.swing.UIManager;
 
@@ -28,12 +29,14 @@ import javax.swing.UIManager;
 public class BigFileFinder extends javax.swing.JFrame {
 
     private static Map<Long, File> allFiles = new TreeMap(Collections.reverseOrder());
+    private String customPath;
 
     /**
      * Creates new form LargeFiles
      */
     public BigFileFinder() {
         initComponents();
+        lblFolder.setText(System.getProperty("user.home"));
     }
 
     /**
@@ -49,8 +52,12 @@ public class BigFileFinder extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         listOutput = new javax.swing.JList<>();
         btnStart = new javax.swing.JButton();
+        btnFolder = new javax.swing.JButton();
+        lblFolder = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Big File Finder");
+        setPreferredSize(new java.awt.Dimension(1200, 800));
 
         jScrollPane1.setViewportView(listOutput);
 
@@ -61,15 +68,24 @@ public class BigFileFinder extends javax.swing.JFrame {
             }
         });
 
+        btnFolder.setText("Change Folder");
+        btnFolder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFolderActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout panelOutputLayout = new javax.swing.GroupLayout(panelOutput);
         panelOutput.setLayout(panelOutputLayout);
         panelOutputLayout.setHorizontalGroup(
             panelOutputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelOutputLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 419, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 366, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnStart)
+                .addGroup(panelOutputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(btnFolder, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnStart, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         panelOutputLayout.setVerticalGroup(
@@ -79,8 +95,10 @@ public class BigFileFinder extends javax.swing.JFrame {
                 .addGroup(panelOutputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelOutputLayout.createSequentialGroup()
                         .addComponent(btnStart)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnFolder)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 282, Short.MAX_VALUE)))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 276, Short.MAX_VALUE)))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -89,25 +107,41 @@ public class BigFileFinder extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(panelOutput, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(lblFolder)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(panelOutput, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(panelOutput, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblFolder)
                 .addContainerGap())
         );
+
+        getAccessibleContext().setAccessibleDescription("Helps you find big files!");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
-        Path path = Paths.get(System.getProperty("user.home"));
-        while (path.getParent() != null) {
-            path = path.getParent();
+        Path path;
+        if (customPath == null || customPath.isEmpty()) {
+            path = Paths.get(System.getProperty("user.home"));
+        } else {
+            path = Paths.get(customPath);
+            System.out.println("Custom path is: "+ path.toString());
         }
+//        while (path.getParent() != null) {
+//            path = path.getParent();
+//        }
         File file = path.toFile();
         File[] curLevelFiles = file.listFiles();
         for (File f : curLevelFiles) {
@@ -116,18 +150,55 @@ public class BigFileFinder extends javax.swing.JFrame {
 
         ArrayList<File> biggestFiles = new ArrayList(allFiles.values());
         DefaultListModel listModel = new DefaultListModel();
-        
+
         DecimalFormat df = new DecimalFormat("##0.00");
 
         for (int i = 0; i < 100; i++) {
             try {
-                listModel.addElement(biggestFiles.get(i).getCanonicalPath() + "   [" + df.format(biggestFiles.get(i).length() / 1000000000D) + "gb]");                
-            } catch (IOException ex) {}
+                listModel.addElement(biggestFiles.get(i).getCanonicalPath() + "   [" + df.format(biggestFiles.get(i).length() / 1000000000D) + "gb]");
+            } catch (IOException ex) {
+            }
         }
 
         listOutput.setModel(listModel);
 
     }//GEN-LAST:event_btnStartActionPerformed
+
+    private void btnFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFolderActionPerformed
+//        // the first parameter the parent window, and the second is the modal status
+//        FolderPicker dialog = new FolderPicker(this, true);
+//        // centre the dialog on the parent window
+//        dialog.setLocationRelativeTo(this);
+//        // make the dialog visible
+//        dialog.setVisible(true);
+
+        JFileChooser jfc;
+
+        if (customPath != null) {
+            jfc = new JFileChooser(customPath);
+        } else {
+            jfc = new JFileChooser(System.getProperty("user.home"));
+        }
+
+        jfc.setDialogType(JFileChooser.OPEN_DIALOG);
+        jfc.setMultiSelectionEnabled(false);
+        jfc.setFileHidingEnabled(true);
+        jfc.setDialogType(JFileChooser.DIRECTORIES_ONLY);
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+        int returnVal = jfc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            try {
+                customPath = jfc.getSelectedFile().getCanonicalPath();
+            } catch (IOException ex) {
+                System.out.println("Error");
+            }
+            lblFolder.setText(customPath);
+
+        }
+
+
+    }//GEN-LAST:event_btnFolderActionPerformed
 
     /**
      * @param args the command line arguments
@@ -177,8 +248,10 @@ public class BigFileFinder extends javax.swing.JFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnFolder;
     private javax.swing.JButton btnStart;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblFolder;
     private javax.swing.JList<String> listOutput;
     private javax.swing.JPanel panelOutput;
     // End of variables declaration//GEN-END:variables
