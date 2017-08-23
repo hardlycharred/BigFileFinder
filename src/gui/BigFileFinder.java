@@ -28,7 +28,7 @@ import javax.swing.UIManager;
  */
 public class BigFileFinder extends javax.swing.JFrame {
 
-    private static Map<Long, File> allFiles = new TreeMap(Collections.reverseOrder());
+    private Map<Long, File> allFiles = new TreeMap(Collections.reverseOrder());
     private String customPath;
 
     /**
@@ -134,25 +134,26 @@ public class BigFileFinder extends javax.swing.JFrame {
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
         Path path = Paths.get(customPath);
-        System.out.println("Custom path is: " + path.toString());
-
-//        while (path.getParent() != null) {
-//            path = path.getParent();
-//        }
         File file = path.toFile();
         File[] curLevelFiles = file.listFiles();
+        allFiles.clear();
         for (File f : curLevelFiles) {
             getChildren(f);
         }
 
         ArrayList<File> biggestFiles = new ArrayList(allFiles.values());
         DefaultListModel listModel = new DefaultListModel();
+        listModel.clear();
+        listOutput.setModel(listModel);
 
         DecimalFormat df = new DecimalFormat("##0.00");
 
-        for (int i = 0; i < 100; i++) {
+        Integer i = 0;
+
+        while (i < 100 && i < biggestFiles.size()) {
             try {
                 listModel.addElement(biggestFiles.get(i).getCanonicalPath() + "   [" + df.format(biggestFiles.get(i).length() / 1000000000D) + "gb]");
+                i++;
             } catch (IOException ex) {
             }
         }
@@ -249,7 +250,7 @@ public class BigFileFinder extends javax.swing.JFrame {
     private javax.swing.JButton btnStart;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblFolder;
-    private javax.swing.JList<String> listOutput;
+    private javax.swing.JList<File> listOutput;
     private javax.swing.JPanel panelOutput;
     // End of variables declaration//GEN-END:variables
 }
