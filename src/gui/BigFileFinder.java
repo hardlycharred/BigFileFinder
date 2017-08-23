@@ -5,7 +5,7 @@
  */
 package gui;
 
-import fileinfo.FileInfo;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,8 +19,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
-import javax.swing.ListModel;
 import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 /**
  *
@@ -142,20 +143,18 @@ public class BigFileFinder extends javax.swing.JFrame {
         }
 
         ArrayList<File> biggestFiles = new ArrayList(allFiles.values());
-        DefaultListModel listModel = new DefaultListModel();
+        DefaultListModel<File> listModel = new DefaultListModel();
         listModel.clear();
+        listOutput.clearSelection();
         listOutput.setModel(listModel);
 
-        DecimalFormat df = new DecimalFormat("##0.00");
+        DecimalFormat df = new DecimalFormat("#####0.00");
 
         Integer i = 0;
 
         while (i < 100 && i < biggestFiles.size()) {
-            try {
-                listModel.addElement(biggestFiles.get(i).getCanonicalPath() + "   [" + df.format(biggestFiles.get(i).length() / 1000000000D) + "gb]");
-                i++;
-            } catch (IOException ex) {
-            }
+            listModel.addElement(biggestFiles.get(i));
+            i++;
         }
 
         listOutput.setModel(listModel);
@@ -184,6 +183,20 @@ public class BigFileFinder extends javax.swing.JFrame {
         jfc.setDialogType(JFileChooser.DIRECTORIES_ONLY);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
+        listOutput.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                try {
+                    Desktop.getDesktop().open(listOutput.getSelectedValue().getParentFile());
+                } catch (NullPointerException ex) {
+                    try {
+                        Desktop.getDesktop().open(new File(System.getProperty("user.home")));
+                    } catch (IOException ex1) {}
+                } catch (IOException ex) {}
+            }
+        });
+
+//        listOutput.addActionListener;
         int returnVal = jfc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             try {
