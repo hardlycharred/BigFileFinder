@@ -36,6 +36,7 @@ public class BigFileFinder extends javax.swing.JFrame {
      */
     public BigFileFinder() {
         initComponents();
+        customPath = System.getProperty("user.home");
         lblFolder.setText(System.getProperty("user.home"));
     }
 
@@ -132,13 +133,9 @@ public class BigFileFinder extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
-        Path path;
-        if (customPath == null || customPath.isEmpty()) {
-            path = Paths.get(System.getProperty("user.home"));
-        } else {
-            path = Paths.get(customPath);
-            System.out.println("Custom path is: "+ path.toString());
-        }
+        Path path = Paths.get(customPath);
+        System.out.println("Custom path is: " + path.toString());
+
 //        while (path.getParent() != null) {
 //            path = path.getParent();
 //        }
