@@ -5,6 +5,7 @@
  */
 package gui;
 
+import domain.CustomFile;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -15,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.UIManager;
@@ -142,19 +141,22 @@ public class BigFileFinder extends javax.swing.JFrame {
             getChildren(f);
         }
 
-        ArrayList<File> biggestFiles = new ArrayList(allFiles.values());
-        DefaultListModel<File> listModel = new DefaultListModel();
+        ArrayList<File> allBiggestFiles = new ArrayList(allFiles.values());
+        System.out.println(allBiggestFiles.size());
+        ArrayList<CustomFile> topBiggestFiles = new ArrayList();
+        
+        for (int i = 0; i < allBiggestFiles.size() && i < 100; i++) {
+            CustomFile cF = new CustomFile(allBiggestFiles.get(i).getAbsolutePath());
+            topBiggestFiles.add(cF);
+        }
+        
+        DefaultListModel<CustomFile> listModel = new DefaultListModel();
         listModel.clear();
         listOutput.clearSelection();
         listOutput.setModel(listModel);
 
-        DecimalFormat df = new DecimalFormat("#####0.00");
-
-        Integer i = 0;
-
-        while (i < 100 && i < biggestFiles.size()) {
-            listModel.addElement(biggestFiles.get(i));
-            i++;
+        for (CustomFile cF : topBiggestFiles) {
+            listModel.addElement(cF);
         }
 
         listOutput.setModel(listModel);
@@ -256,14 +258,14 @@ public class BigFileFinder extends javax.swing.JFrame {
             allFiles.put(f.length(), f.getAbsoluteFile());
         }
     }
-
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnFolder;
     private javax.swing.JButton btnStart;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblFolder;
-    private javax.swing.JList<File> listOutput;
+    private javax.swing.JList<CustomFile> listOutput;
     private javax.swing.JPanel panelOutput;
     // End of variables declaration//GEN-END:variables
 }
