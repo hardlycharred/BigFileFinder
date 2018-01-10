@@ -6,12 +6,12 @@
 package gui;
 
 import domain.CustomFile;
+import fileinfo.FolderBrowserTask;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -28,8 +28,11 @@ import javax.swing.event.ListSelectionListener;
  */
 public class BigFileFinder extends javax.swing.JFrame {
 
-    private Map<Long, File> allFiles = new TreeMap(Collections.reverseOrder());
+    public static Map<Long, File> allFiles = new TreeMap(Collections.reverseOrder());
     private String customPath;
+    static Integer topLevelCount = 0;
+    public static Boolean[] greenLights;
+    static DefaultListModel<CustomFile> listModel = new DefaultListModel();
 
     /**
      * Creates new form LargeFiles
@@ -38,6 +41,10 @@ public class BigFileFinder extends javax.swing.JFrame {
         initComponents();
         customPath = System.getProperty("user.home");
         lblFolder.setText(System.getProperty("user.home"));
+    }
+
+    public BigFileFinder(int dud) {
+
     }
 
     /**
@@ -137,28 +144,23 @@ public class BigFileFinder extends javax.swing.JFrame {
         File file = path.toFile();
         File[] curLevelFiles = file.listFiles();
         allFiles.clear();
-        for (File f : curLevelFiles) {
-            getChildren(f);
+
+        topLevelCount = curLevelFiles.length;
+        greenLights = new Boolean[topLevelCount];
+        for (int i = 0; i < greenLights.length; i++) {
+            greenLights[i] = false;
         }
 
-        ArrayList<File> allBiggestFiles = new ArrayList(allFiles.values());
-        System.out.println(allBiggestFiles.size());
-        ArrayList<CustomFile> topBiggestFiles = new ArrayList();
-        
-        for (int i = 0; i < allBiggestFiles.size() && i < 100; i++) {
-            CustomFile cF = new CustomFile(allBiggestFiles.get(i).getAbsolutePath());
-            topBiggestFiles.add(cF);
+        int pos = 0;
+
+        for (File f : curLevelFiles) {
+            Thread t = new Thread(new FolderBrowserTask(f, pos));
+            pos++;
+            t.start();
         }
-        
-        DefaultListModel<CustomFile> listModel = new DefaultListModel();
+
         listModel.clear();
         listOutput.clearSelection();
-        listOutput.setModel(listModel);
-
-        for (CustomFile cF : topBiggestFiles) {
-            listModel.addElement(cF);
-        }
-
         listOutput.setModel(listModel);
 
     }//GEN-LAST:event_btnStartActionPerformed
@@ -193,8 +195,10 @@ public class BigFileFinder extends javax.swing.JFrame {
                 } catch (NullPointerException ex) {
                     try {
                         Desktop.getDesktop().open(new File(System.getProperty("user.home")));
-                    } catch (IOException ex1) {}
-                } catch (IOException ex) {}
+                    } catch (IOException ex1) {
+                    }
+                } catch (IOException ex) {
+                }
             }
         });
 
@@ -258,14 +262,49 @@ public class BigFileFinder extends javax.swing.JFrame {
             allFiles.put(f.length(), f.getAbsoluteFile());
         }
     }
-    
+
+    public static void threadCallback() throws IOException {
+        for (boolean b : greenLights) {
+            if (b == false) {
+                return;
+            }
+        }
+
+        System.out.println("done");
+
+        ArrayList<File> listFiles = new ArrayList(allFiles.values());
+        int listSize = listFiles.size() < 100 ? listFiles.size() : 101;
+
+        ArrayList<File> biggestFiles = new ArrayList<>(listFiles.subList(0, listSize));
+        ArrayList<CustomFile> biggestCustomFiles = new ArrayList<>();
+        listFiles.clear();
+        for (int i = 0; i < biggestFiles.size(); i++) {
+            CustomFile cF = new CustomFile(biggestFiles.get(i).getAbsolutePath());
+            biggestCustomFiles.add(cF);
+        }
+        System.out.println("done pimping files");
+
+        updateModel(biggestCustomFiles);
+    }
+
+    public static void updateModel(ArrayList<CustomFile> files) {
+        
+        listModel = new DefaultListModel<>();
+        for (CustomFile cF : files) {
+            listModel.addElement(cF);
+        }
+
+        listOutput.setModel(listModel);
+
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnFolder;
     private javax.swing.JButton btnStart;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblFolder;
-    private javax.swing.JList<CustomFile> listOutput;
+    private static javax.swing.JList<CustomFile> listOutput;
     private javax.swing.JPanel panelOutput;
     // End of variables declaration//GEN-END:variables
 }

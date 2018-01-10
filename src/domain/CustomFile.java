@@ -13,6 +13,8 @@ import java.text.DecimalFormat;
  * @author Charlie Hard
  */
 public class CustomFile extends File {
+    
+    
 
     public CustomFile(String path) {
         super(path);
